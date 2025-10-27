@@ -90,6 +90,58 @@ FORM_DATA: Dict[Tuple[str, Optional[str]], Dict[str, str]] = {
         "numero": "58",
         "boite": "",
         "commune_affichage": "5000 Namur (Wartet)",
+        "parcelles_table": [
+            {
+                "label": "Parcelle 1",
+                "commune": "Namur",
+                "division": "4e",
+                "section": "B",
+                "numero": "451a2",
+                "superficie": "10 240",
+                "nature": "Zone agricole",
+                "proprietaire": "Oui",
+            },
+            {
+                "label": "Parcelle 2",
+                "commune": "Namur",
+                "division": "4e",
+                "section": "B",
+                "numero": "452b",
+                "superficie": "8 915",
+                "nature": "Implantation éolienne E-2",
+                "proprietaire": "Oui",
+            },
+            {
+                "label": "Parcelle 3",
+                "commune": "Namur",
+                "division": "4e",
+                "section": "B",
+                "numero": "453c",
+                "superficie": "2 150",
+                "nature": "Poste électrique privatif",
+                "proprietaire": "Oui",
+            },
+            {
+                "label": "Parcelle 4",
+                "commune": "Namur",
+                "division": "4e",
+                "section": "B",
+                "numero": "454/1",
+                "superficie": "3 480",
+                "nature": "Voiries d'accès et aire de grutage",
+                "proprietaire": "Oui",
+            },
+            {
+                "label": "Parcelle 5",
+                "commune": "Namur",
+                "division": "4e",
+                "section": "B",
+                "numero": "454/2",
+                "superficie": "1 950",
+                "nature": "Espace tampon paysager",
+                "proprietaire": "Oui",
+            },
+        ],
     },
     ("objet", None): {
         "description_generale": (
@@ -100,6 +152,16 @@ FORM_DATA: Dict[Tuple[str, Optional[str]], Dict[str, str]] = {
             "armé, du poste électrique privatif 36 kV, du raccordement souterrain à la "
             "cabine Elia de Suarlée, ainsi que la mise en place des systèmes SCADA et "
             "des dispositifs de bridage acoustique et ornithologique."
+        ),
+        "puissance_module": "24 MW installés (5 x 4,8 MW EnerWind E-138)",
+        "travaux_techniques": (
+            "Travaux techniques prévus : fondations circulaires en béton armé de 19 m de "
+            "diamètre et 2,8 m d'épaisseur, réalisation de voiries d'accès en béton "
+            "désactivé, pose d'une liaison électrique souterraine 36 kV de 8,6 km jusqu'à "
+            "la cabine Elia de Suarlée, installation d'un transformateur 36/150 kV de 40 "
+            "MVA avec bac de rétention et système de détection de fuites, mise en place "
+            "d'un poste de livraison télécontrôlé et raccordement aux réseaux de "
+            "télécommunication SCADA (fibre optique + LTE)."
         ),
     },
 }
@@ -191,6 +253,21 @@ FIELD_RULES: Dict[Tuple[str, Optional[str]], List[FieldRule]] = {
             id="objet_description",
             pattern=re.compile(r"Décrivez\s+l[’']entièreté\s+du\s+projet", re.IGNORECASE),
             keys=("description_generale",),
+            action="append",
+        ),
+        FieldRule(
+            id="objet_puissance",
+            pattern=re.compile(
+                r"Si le projet concerne un module de production d[’']énergie", re.IGNORECASE
+            ),
+            keys=("puissance_module",),
+        ),
+        FieldRule(
+            id="objet_travaux_techniques",
+            pattern=re.compile(
+                r"Si le projet concerne la réalisation de travaux techniques", re.IGNORECASE
+            ),
+            keys=("travaux_techniques",),
             action="append",
         ),
     ],
@@ -329,6 +406,43 @@ def iter_block_items(parent: _Document | _Cell) -> Iterator[Paragraph | Table]:
             yield Table(child, parent)
 
 
+def fill_parcelles_table(doc: Document, parcelles: Sequence[Dict[str, str]]) -> None:
+    """Remplit le tableau des parcelles cadastrales si présent dans le document."""
+
+    if not parcelles:
+        return
+
+    table_elements = doc.element.xpath(
+        './/w:tbl[w:tr/w:tc//w:t[contains(text(), "Parcelle 1")]]'
+    )
+    if not table_elements:
+        return
+
+    # Certaines versions du formulaire du CoDT contiennent deux tableaux successifs :
+    # le premier pour le titre, le second pour les lignes détaillées. On vise donc
+    # systématiquement le dernier tableau identifié.
+    target_element = table_elements[-1]
+    table = Table(target_element, doc)
+
+    parcel_rows = table.rows[1:]  # on saute l'en-tête
+    for data, row in zip(parcelles, parcel_rows):
+        cells = row.cells
+        cells[0].text = data.get("label", cells[0].text.strip())
+        cells[1].text = data.get("commune", "")
+        cells[2].text = data.get("division", "")
+        cells[3].text = data.get("section", "")
+        cells[4].text = data.get("numero", "")
+        cells[5].text = data.get("superficie", "")
+        cells[6].text = data.get("nature", "")
+        cells[7].text = data.get("proprietaire", "")
+
+    for row in parcel_rows[len(parcelles) :]:
+        for cell in row.cells[1:]:
+            cell.text = ""
+
+
+
+
 def remplir_formulaire_intelligent() -> Tuple[Path, Set[str]]:
     """Remplit le formulaire DOCX avec les données d'exemple."""
 
@@ -348,6 +462,10 @@ def remplir_formulaire_intelligent() -> Tuple[Path, Set[str]]:
             process_paragraph(block, context, filled_rules)
         elif isinstance(block, Table):
             process_table(block, context, filled_rules)
+
+    localisation_data = FORM_DATA.get(("localisation", None), {})
+    parcelles_entries = localisation_data.get("parcelles_table", [])
+    fill_parcelles_table(doc, parcelles_entries)
 
     doc.save(output_path)
     return output_path, filled_rules
