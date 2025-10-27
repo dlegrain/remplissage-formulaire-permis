@@ -60,22 +60,9 @@ class FieldRule:
 
 FORM_DATA: Dict[Tuple[str, Optional[str]], Dict[str, str]] = {
     ("demandeur", "personne_physique"): {
-        "nom": "MARTIN",
-        "prenom": "Jean",
-        "numero_national": "85.10.25-123.45",
-        "rue": "Rue du Moulin",
-        "numero": "12",
-        "boite": "",
-        "code_postal": "4420",
-        "commune": "Saint-Nicolas",
-        "pays": "Belgique",
-        "telephone": "+32 498 12 34 56",
-        "courriel": "jean.martin@example.com",
-    },
-    ("demandeur", "personne_morale"): {
-        "denomination": "Martin Construction SRL",
-        "forme_juridique": "SRL",
-        "numero_bce": "0753.123.456",
+        "nom": "DUPONT",
+        "prenom": "Martin",
+        "numero_national": "72.04.19-456.33",
         "rue": "Chaussée Verte",
         "numero": "101",
         "boite": "B",
@@ -83,23 +70,36 @@ FORM_DATA: Dict[Tuple[str, Optional[str]], Dict[str, str]] = {
         "commune": "Liège",
         "pays": "Belgique",
         "telephone": "+32 4 234 56 78",
-        "courriel": "contact@martinconstruction.be",
+        "courriel": "martin.dupont@martinconstruction.be",
+    },
+    ("demandeur", "personne_morale"): {
+        "denomination": "Parc Éolien Plaine des Collines SCRL",
+        "forme_juridique": "SCRL",
+        "numero_bce": "0789.654.321",
+        "rue": "Chaussée Verte",
+        "numero": "101",
+        "boite": "B",
+        "code_postal": "4000",
+        "commune": "Liège",
+        "pays": "Belgique",
+        "telephone": "+32 4 234 56 70",
+        "courriel": "contact@plainedescollines.be",
     },
     ("localisation", None): {
         "rue": "Rue des Tilleuls",
         "numero": "58",
         "boite": "",
-        "commune_affichage": "5000 Namur",
+        "commune_affichage": "5000 Namur (Wartet)",
     },
     ("objet", None): {
         "description_generale": (
-            "Le projet prévoit la rénovation complète de l'annexe arrière "
-            "afin d'y aménager un atelier de menuiserie légère. Les travaux "
-            "comprennent la démolition de la toiture existante, la pose d'une "
-            "toiture plate végétalisée, le remplacement des menuiseries par "
-            "des châssis en aluminium thermolaqué ainsi que l'isolation de "
-            "l'enveloppe par l'extérieur. Un nouvel accès PMR et une zone de "
-            "stationnement perméable sont également prévus."
+            "Construction et exploitation d'un parc de cinq éoliennes EnerWind E-138 "
+            "d'une puissance unitaire de 4,8 MW chacune, implantées sur la Plaine des "
+            "Collines (communes de Fernelmont et Noville-les-Bois). Le projet inclut "
+            "la réalisation des voiries d'accès, des fondations circulaires en béton "
+            "armé, du poste électrique privatif 36 kV, du raccordement souterrain à la "
+            "cabine Elia de Suarlée, ainsi que la mise en place des systèmes SCADA et "
+            "des dispositifs de bridage acoustique et ornithologique."
         ),
     },
 }
